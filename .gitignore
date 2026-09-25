@@ -288,3 +288,11 @@ AGENTS.md
 !promotion/frontend/.env.development
 !promotion/frontend/.env.production
 *.keystore
+
+# CLI/MCP 本地凭据、连接配置和操作数据（示例仅使用文档中的占位符）
+**/credentials.json
+**/.credentials-*
+.mcp.json
+mcp.local.json
+.xianyu/
+/integrations/local/

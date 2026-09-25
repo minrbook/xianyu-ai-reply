@@ -6,7 +6,7 @@
 
 基于 FastAPI、React、MySQL、Redis 与 Playwright，面向个人自用部署与源码学习。
 
-[快速开始](#快速开始) · [改进对照](#相较上游的改进) · [安全与迁移](SECURITY.md) · [原项目](https://github.com/zhinianboke/xianyu-auto-reply)
+[CLI / MCP](integrations/README.md) · [快速开始](#快速开始) · [改进对照](#相较上游的改进) · [安全与迁移](SECURITY.md) · [原项目](https://github.com/zhinianboke/xianyu-auto-reply)
 
 </div>
 
@@ -35,6 +35,12 @@
 | 任务与通知 | 定时任务、通知渠道与风控记录 |
 
 仓库同时保留 `promotion/` 返佣子系统、`xianyu-mobile/` 移动客户端和 `launcher/` 桌面启动器源码。默认 Docker Compose 仅部署主系统；这些附属客户端与子系统未纳入本次完整功能验收。
+
+## CLI 与 MCP
+
+新增统一的 [CLI 与 MCP 操作入口](integrations/README.md)：查询账号、商品、订单和关键词，按需启用账号启停、关键词替换与消息发送。复用现有 Bearer 鉴权，默认只读；MCP 使用本地 stdio，不新增公网服务端口。
+
+访问令牌通过隐藏输入或显式标准输入配置，验证后保存在仓库外的用户目录，并绑定服务地址。输出按字段白名单裁剪，避免透传 Cookie、密码和买家收货资料。安装、命令、MCP 配置示例和限制见 [接入文档](integrations/README.md)。
 
 ## 相较上游的改进
 
@@ -129,6 +135,7 @@ bash build.sh rebuild    # 从当前源码重新构建并启动
 ├── scheduler/            # 定时任务
 ├── common/               # 共享模型、数据库、凭据保护与公共服务
 ├── frontend/             # React + TypeScript 管理界面
+├── integrations/         # CLI / stdio MCP、安全客户端与独立依赖锁
 ├── scripts/              # 密钥初始化、凭据迁移、部署验证
 ├── tests/                # 安全回归测试
 ├── docker/               # 前端与共享运行时镜像构建

@@ -24,3 +24,10 @@ docker-compose.yml
 **/logs
 **/browser_data
 **/node_modules
+
+# 本地自动化客户端不进入服务镜像
+integrations
+**/credentials.json
+.mcp.json
+mcp.local.json
+.xianyu
