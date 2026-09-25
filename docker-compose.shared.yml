@@ -1,0 +1,93 @@
+# Compose >= 2.24.4. Use together with docker-compose.yml, always --no-build on server.
+# Total hard limits: 3008 MiB RAM and 1.50 CPU. Initial single-account deployment.
+x-limits: &limits
+  restart: "on-failure:3"
+  pids_limit: 192
+  security_opt: !override ["no-new-privileges:true"]
+  logging:
+    driver: local
+    options:
+      max-size: "10m"
+      max-file: "3"
+
+services:
+  mysql:
+    <<: *limits
+    container_name: !reset null
+    mem_limit: 768m
+    memswap_limit: 768m
+    cpus: 0.25
+    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci", "--max-connections=60", "--max-allowed-packet=32M", "--innodb-buffer-pool-size=128M", "--performance-schema=OFF", "--default-time-zone=+08:00"]
+  redis:
+    <<: *limits
+    container_name: !reset null
+    mem_limit: 128m
+    memswap_limit: 128m
+    cpus: 0.10
+    command: "redis-server --requirepass ${REDIS_PASSWORD:?required} --maxmemory 64mb --maxmemory-policy noeviction --appendonly yes"
+  backend-web:
+    <<: *limits
+    cap_drop: [ALL]
+    container_name: !reset null
+    image: xianyu-app:${RELEASE_ID:?required}
+    build: !reset null
+    mem_limit: 768m
+    memswap_limit: 768m
+    cpus: 0.35
+    init: true
+    environment:
+      DB_POOL_SIZE: "5"
+      DB_MAX_OVERFLOW: "5"
+      AUTO_START_CRAWL_JOBS: "false"
+      LOG_FILE_MAX_ARCHIVES: "3"
+    healthcheck:
+      start_period: 180s
+  websocket:
+    <<: *limits
+    cap_drop: [ALL]
+    container_name: !reset null
+    image: xianyu-app:${RELEASE_ID:?required}
+    build: !reset null
+    command: ["python", "websocket/main.py"]
+    mem_limit: 1024m
+    memswap_limit: 1024m
+    cpus: 0.50
+    init: true
+    shm_size: 128m
+    environment:
+      DB_POOL_SIZE: "5"
+      DB_MAX_OVERFLOW: "5"
+      MAX_CAPTCHA_CONCURRENT: "1"
+      LOG_FILE_MAX_ARCHIVES: "3"
+    healthcheck:
+      start_period: 180s
+  scheduler:
+    <<: *limits
+    cap_drop: [ALL]
+    container_name: !reset null
+    image: xianyu-app:${RELEASE_ID:?required}
+    build: !reset null
+    command: ["python", "scheduler/main.py"]
+    mem_limit: 256m
+    memswap_limit: 256m
+    cpus: 0.20
+    init: true
+    environment:
+      DB_POOL_SIZE: "3"
+      DB_MAX_OVERFLOW: "2"
+      LOG_FILE_MAX_ARCHIVES: "3"
+  frontend:
+    <<: *limits
+    container_name: !reset null
+    image: xianyu-frontend:${RELEASE_ID:?required}
+    build: !reset null
+    mem_limit: 64m
+    memswap_limit: 64m
+    cpus: 0.10
+    ports: !override ["127.0.0.1:19000:80"]
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:80/"]
+      interval: 10s
+      timeout: 5s
+      start_period: 5s
+      retries: 3
